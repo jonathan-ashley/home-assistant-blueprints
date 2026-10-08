@@ -1,17 +1,17 @@
 blueprint:
-  name: Shelly four-button light controller
+  name: Shelly one-to-four-button light controller
   description: >-
-    Map four Shelly button event entities to four light targets. A single press
-    toggles the corresponding target. An optional long press turns the target on
-    at full brightness. Designed for Shelly Gen2+ devices whose inputs are set to
-    Button mode, including the Shelly i4 Gen3.
+    Map between one and four Shelly button event entities to light targets. A
+    single press toggles the corresponding target. An optional long press turns
+    the target on at full brightness. Designed for Shelly Gen2+ devices whose
+    inputs are set to Button mode, including the Shelly i4 Gen3.
   domain: automation
   author: Jonathan Ashley
   homeassistant:
     min_version: 2026.4.0
   input:
-    buttons:
-      name: Shelly button events
+    required_button:
+      name: Required button
       icon: mdi:gesture-tap-button
       input:
         button_1_event:
@@ -20,77 +20,86 @@ blueprint:
             entity:
               filter:
                 domain: event
-        button_2_event:
-          name: Button 2 event
-          selector:
-            entity:
-              filter:
-                domain: event
-        button_3_event:
-          name: Button 3 event
-          selector:
-            entity:
-              filter:
-                domain: event
-        button_4_event:
-          name: Button 4 event
-          selector:
-            entity:
-              filter:
-                domain: event
-
-    light_targets:
-      name: Light targets
-      icon: mdi:lightbulb-group
-      input:
         button_1_target:
           name: Button 1 light target
           selector:
             target:
               entity:
                 domain: light
-        button_2_target:
-          name: Button 2 light target
-          selector:
-            target:
-              entity:
-                domain: light
-        button_3_target:
-          name: Button 3 light target
-          selector:
-            target:
-              entity:
-                domain: light
-        button_4_target:
-          name: Button 4 light target
-          selector:
-            target:
-              entity:
-                domain: light
-
-    long_press:
-      name: Long-press behaviour
-      icon: mdi:gesture-tap-hold
-      collapsed: true
-      input:
         button_1_long_press:
           name: Enable button 1 long press
           description: Turn the button 1 target on at 100% brightness.
           default: true
           selector:
             boolean:
+
+    optional_buttons:
+      name: Optional buttons 2–4
+      description: >-
+        For each additional button, select both its event entity and light
+        target. Leave both fields empty when that button is not present.
+      icon: mdi:gesture-tap-button
+      collapsed: true
+      input:
+        button_2_event:
+          name: Button 2 event
+          default: []
+          selector:
+            entity:
+              multiple: true
+              filter:
+                domain: event
+        button_2_target:
+          name: Button 2 light target
+          default: {}
+          selector:
+            target:
+              entity:
+                domain: light
         button_2_long_press:
           name: Enable button 2 long press
           description: Turn the button 2 target on at 100% brightness.
           default: true
           selector:
             boolean:
+
+        button_3_event:
+          name: Button 3 event
+          default: []
+          selector:
+            entity:
+              multiple: true
+              filter:
+                domain: event
+        button_3_target:
+          name: Button 3 light target
+          default: {}
+          selector:
+            target:
+              entity:
+                domain: light
         button_3_long_press:
           name: Enable button 3 long press
           description: Turn the button 3 target on at 100% brightness.
           default: false
           selector:
             boolean:
+
+        button_4_event:
+          name: Button 4 event
+          default: []
+          selector:
+            entity:
+              multiple: true
+              filter:
+                domain: event
+        button_4_target:
+          name: Button 4 light target
+          default: {}
+          selector:
+            target:
+              entity:
+                domain: light
         button_4_long_press:
           name: Enable button 4 long press
           description: Turn the button 4 target on at 100% brightness.
@@ -188,6 +197,8 @@ actions:
       - conditions:
           - condition: trigger
             id: toggle
+          - condition: template
+            value_template: "{{ selected_target | default({}) | count > 0 }}"
         sequence:
           - action: light.toggle
             target: "{{ selected_target }}"
@@ -196,7 +207,9 @@ actions:
           - condition: trigger
             id: full_brightness
           - condition: template
-            value_template: "{{ long_press_enabled | bool }}"
+            value_template: >-
+              {{ long_press_enabled | bool
+                 and selected_target | default({}) | count > 0 }}
         sequence:
           - action: light.turn_on
             target: "{{ selected_target }}"
@@ -205,4 +218,3 @@ actions:
 
 mode: queued
 max: 10
-
