@@ -1,0 +1,208 @@
+blueprint:
+  name: Shelly four-button light controller
+  description: >-
+    Map four Shelly button event entities to four light targets. A single press
+    toggles the corresponding target. An optional long press turns the target on
+    at full brightness. Designed for Shelly Gen2+ devices whose inputs are set to
+    Button mode, including the Shelly i4 Gen3.
+  domain: automation
+  author: Jonathan Ashley
+  homeassistant:
+    min_version: 2026.4.0
+  input:
+    buttons:
+      name: Shelly button events
+      icon: mdi:gesture-tap-button
+      input:
+        button_1_event:
+          name: Button 1 event
+          selector:
+            entity:
+              filter:
+                domain: event
+        button_2_event:
+          name: Button 2 event
+          selector:
+            entity:
+              filter:
+                domain: event
+        button_3_event:
+          name: Button 3 event
+          selector:
+            entity:
+              filter:
+                domain: event
+        button_4_event:
+          name: Button 4 event
+          selector:
+            entity:
+              filter:
+                domain: event
+
+    light_targets:
+      name: Light targets
+      icon: mdi:lightbulb-group
+      input:
+        button_1_target:
+          name: Button 1 light target
+          selector:
+            target:
+              entity:
+                domain: light
+        button_2_target:
+          name: Button 2 light target
+          selector:
+            target:
+              entity:
+                domain: light
+        button_3_target:
+          name: Button 3 light target
+          selector:
+            target:
+              entity:
+                domain: light
+        button_4_target:
+          name: Button 4 light target
+          selector:
+            target:
+              entity:
+                domain: light
+
+    long_press:
+      name: Long-press behaviour
+      icon: mdi:gesture-tap-hold
+      collapsed: true
+      input:
+        button_1_long_press:
+          name: Enable button 1 long press
+          description: Turn the button 1 target on at 100% brightness.
+          default: true
+          selector:
+            boolean:
+        button_2_long_press:
+          name: Enable button 2 long press
+          description: Turn the button 2 target on at 100% brightness.
+          default: true
+          selector:
+            boolean:
+        button_3_long_press:
+          name: Enable button 3 long press
+          description: Turn the button 3 target on at 100% brightness.
+          default: false
+          selector:
+            boolean:
+        button_4_long_press:
+          name: Enable button 4 long press
+          description: Turn the button 4 target on at 100% brightness.
+          default: true
+          selector:
+            boolean:
+
+triggers:
+  - trigger: event.received
+    target:
+      entity_id: !input button_1_event
+    options:
+      event_type:
+        - single_push
+    id: toggle
+    variables:
+      selected_target: !input button_1_target
+
+  - trigger: event.received
+    target:
+      entity_id: !input button_2_event
+    options:
+      event_type:
+        - single_push
+    id: toggle
+    variables:
+      selected_target: !input button_2_target
+
+  - trigger: event.received
+    target:
+      entity_id: !input button_3_event
+    options:
+      event_type:
+        - single_push
+    id: toggle
+    variables:
+      selected_target: !input button_3_target
+
+  - trigger: event.received
+    target:
+      entity_id: !input button_4_event
+    options:
+      event_type:
+        - single_push
+    id: toggle
+    variables:
+      selected_target: !input button_4_target
+
+  - trigger: event.received
+    target:
+      entity_id: !input button_1_event
+    options:
+      event_type:
+        - long_push
+    id: full_brightness
+    variables:
+      selected_target: !input button_1_target
+      long_press_enabled: !input button_1_long_press
+
+  - trigger: event.received
+    target:
+      entity_id: !input button_2_event
+    options:
+      event_type:
+        - long_push
+    id: full_brightness
+    variables:
+      selected_target: !input button_2_target
+      long_press_enabled: !input button_2_long_press
+
+  - trigger: event.received
+    target:
+      entity_id: !input button_3_event
+    options:
+      event_type:
+        - long_push
+    id: full_brightness
+    variables:
+      selected_target: !input button_3_target
+      long_press_enabled: !input button_3_long_press
+
+  - trigger: event.received
+    target:
+      entity_id: !input button_4_event
+    options:
+      event_type:
+        - long_push
+    id: full_brightness
+    variables:
+      selected_target: !input button_4_target
+      long_press_enabled: !input button_4_long_press
+
+actions:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id: toggle
+        sequence:
+          - action: light.toggle
+            target: "{{ selected_target }}"
+
+      - conditions:
+          - condition: trigger
+            id: full_brightness
+          - condition: template
+            value_template: "{{ long_press_enabled | bool }}"
+        sequence:
+          - action: light.turn_on
+            target: "{{ selected_target }}"
+            data:
+              brightness_pct: 100
+
+mode: queued
+max: 10
+
