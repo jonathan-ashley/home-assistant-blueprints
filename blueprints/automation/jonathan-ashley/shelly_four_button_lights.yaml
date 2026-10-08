@@ -18,6 +18,7 @@ blueprint:
           name: Button 1 event
           selector:
             entity:
+              multiple: true
               filter:
                 domain: event
         button_1_target:
@@ -81,7 +82,7 @@ blueprint:
         button_3_long_press:
           name: Enable button 3 long press
           description: Turn the button 3 target on at 100% brightness.
-          default: false
+          default: true
           selector:
             boolean:
 
