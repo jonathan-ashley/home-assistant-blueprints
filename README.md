@@ -2,10 +2,11 @@
 
 Reusable Home Assistant automation blueprints.
 
-## Shelly four-button light controller
+## Shelly one-to-four-button light controller
 
-Maps four Shelly button event entities to four light targets:
+Maps between one and four Shelly button event entities to light targets:
 
+- Button 1 is required; buttons 2–4 are optional.
 - Single press toggles the corresponding light target.
 - Long press optionally turns the target on at 100% brightness.
 - Button 3 long press is disabled by default.
